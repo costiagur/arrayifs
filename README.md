@@ -1,5 +1,5 @@
 # arrayifs
-VBA function that returns array of values based on conditions. Afterwards, user can do any operation available on an array.
+VBA function for Excel that returns array of values based on conditions. Afterwards, user can do any operation available on an array.
 
 Agruments:
 valrange - values to be returned in an array
