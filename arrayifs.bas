@@ -95,7 +95,7 @@ Set reslist = Nothing
 'Debug.Print Join(resarr, "_")
 
 If asstring = True Then
-    Arrayifs = Join(resarr, "_")
+    Arrayifs = trim(Join(resarr, " "))
 Else
     Arrayifs = resarr
 End If
