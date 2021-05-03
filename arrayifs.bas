@@ -4,30 +4,32 @@ Option Explicit
 Function Arrayifs(valrange, testrange1, condition1, Optional testrange2 = "", Optional condition2 = "", Optional testrange3 = "", Optional condition3 = "", Optional testrange4 = "", Optional condition4 = "", Optional asstring As Boolean = False)
 
 Dim i As Integer, j As Integer
-Dim testrangearr As New Collection, conditionarr As New Collection, checkstr As String, condarr As New Collection, testarr As New Collection
-Dim reslist As New Collection, resarr(), midval, midcond, removed As String
+Dim testrangearr As New Collection, conditionarr As New Collection, checkstr As String, condarr As New Collection
+Dim reslist As Object, midval, midcond, removed As String
+Dim cond, valarr
+
+Set reslist = CreateObject("Scripting.Dictionary")
+
+valarr = valrange
 
 condarr.Add condition1
 condarr.Add condition2
 condarr.Add condition3
 condarr.Add condition4
 
-testarr.Add testrange1
-testarr.Add testrange2
-testarr.Add testrange3
-testarr.Add testrange4
+i = 0
 
-For i = 1 To condarr.Count
-
-    If condarr.Item(i) <> "" Then
+For Each cond In condarr
+    i = i + 1
+    If cond <> "" Then
         
-        midcond = Replace(condarr.Item(i), "<", "")
+        midcond = Replace(cond, "<", "")
         midcond = Replace(midcond, ">", "")
         midcond = Replace(midcond, "=", "")
             
-        removed = mid(condarr.Item(i), 1, Len(condarr.Item(i)) - Len(midcond)) 'get operator
+        removed = Mid(cond, 1, Len(cond) - Len(midcond)) 'get operator
             
-        If IsDate(midcond) Then midcond = Val(Format(midcond, "General Number")) 'convert date to number
+        If IsDate(midcond) Then midcond = val(format(midcond, "General Number")) 'convert date to number
             
         If Not IsNumeric(midcond) Then midcond = Chr(34) & midcond & Chr(34)
         
@@ -38,43 +40,52 @@ For i = 1 To condarr.Count
         End If
         
         conditionarr.Add midcond
-                
-        'Debug.Print conditionarr(conditionarr.Count)
         
-        testrangearr.Add testarr.Item(i)
+        Select Case i
+            Case 1
+                testrangearr.Add testrange1.Value
+            Case 2
+                testrangearr.Add testrange2.Value
+            Case 3
+                testrangearr.Add testrange3.Value
+            Case 4
+                testrangearr.Add testrange4.Value
+        End Select
     End If
 
-Next i
+Next
 
 Set condarr = Nothing
-Set testarr = Nothing
 
-For i = 1 To valrange.Count
+i = 1
+
+For i = LBound(valarr) To UBound(valarr)
     
-    If IsEmpty(valrange(i).Value2) Then GoTo nexti
+    If IsEmpty(valarr(i, 1)) Then GoTo nexti
     
     checkstr = ""
 
-    For j = 1 To conditionarr.Count
+    j = 0
+
+    For Each cond In conditionarr
+        j = j + 1
         
-        midval = testrangearr.Item(j)(i).Value2
+        midval = testrangearr.Item(j)(i, 1)
         
         If IsEmpty(midval) Then GoTo nextj
         
-        If IsDate(midval) Then midval = Val(Format(midval, "General Number"))
+        If IsDate(midval) Then midval = val(format(midval, "General Number"))
         
         If Not IsNumeric(midval) Then midval = Chr(34) & midval & Chr(34)
         
-        checkstr = checkstr & midval & conditionarr.Item(j) & "," 'create evaluation string
+        checkstr = checkstr & midval & cond & "," 'create evaluation string
 
 nextj:
-    Next j
+    Next cond
     
     checkstr = "and(" & checkstr & "TRUE)" 'if missing all the conditions the result is true
-    
-    'Debug.Print checkstr
 
-    If Evaluate(checkstr) = True Then reslist.Add valrange(i).Value2
+    If Evaluate(checkstr) = True Then reslist.Add i, valarr(i, 1)
     
 nexti:
 Next i
@@ -82,24 +93,11 @@ Next i
 Set testrangearr = Nothing
 Set conditionarr = Nothing
 
-ReDim resarr(reslist.Count)
-
-i = 1
-
-For i = 1 To reslist.Count
-    resarr(i - 1) = reslist(i)
-Next i
-
-Set reslist = Nothing
-
-'Debug.Print Join(resarr, "_")
-
 If asstring = True Then
-    Arrayifs = trim(Join(resarr, " "))
+    Arrayifs = Trim(Join(reslist.items, " "))
 Else
-    Arrayifs = resarr
+    Arrayifs = reslist.items
 End If
-
 
 End Function
 
