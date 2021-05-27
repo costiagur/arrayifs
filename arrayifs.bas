@@ -1,7 +1,7 @@
 Attribute VB_Name = "Module1"
 Option Explicit
 
-Function Arrayifs(valrange, testrange1, condition1, Optional testrange2 = "", Optional condition2 = "", Optional testrange3 = "", Optional condition3 = "", Optional testrange4 = "", Optional condition4 = "", Optional asstring As Boolean = False)
+Function Arrayifs(valrange, testrange1, condition1, Optional testrange2 = "", Optional condition2 = "", Optional testrange3 = "", Optional condition3 = "", Optional testrange4 = "", Optional condition4 = "", Optional delimiter As String = "")
 
 Dim i As Integer, j As Integer
 Dim testrangearr As New Collection, conditionarr As New Collection, checkstr As String, condarr As New Collection
@@ -93,8 +93,8 @@ Next i
 Set testrangearr = Nothing
 Set conditionarr = Nothing
 
-If asstring = True Then
-    Arrayifs = Trim(Join(reslist.items, " "))
+If delimiter <> "" Then
+    Arrayifs = Trim(Join(reslist.items, delimiter))
 Else
     Arrayifs = reslist.items
 End If
