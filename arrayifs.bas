@@ -1,14 +1,14 @@
 Attribute VB_Name = "Module1"
 Option Explicit
 
-Function Arrayifs(valrange, testrange1, condition1, Optional testrange2 = "", Optional condition2 = "", Optional testrange3 = "", Optional condition3 = "", Optional testrange4 = "", Optional condition4 = "", Optional delimiter As String = "")
+Function Arrayifs(valrange, testrange1, condition1, Optional testrange2 = "", Optional condition2 = "", Optional testrange3 = "", Optional condition3 = "", Optional testrange4 = "", Optional condition4 = "", Optional delimiter As String = "", Optional uniques As Boolean = False)
 
 Dim i As Integer, j As Integer
 Dim testrangearr As New Collection, conditionarr As New Collection, checkstr As String, condarr As New Collection
-Dim reslist As Object, midval, midcond, removed As String
-Dim cond, valarr
+Dim reslist(), midval, midcond, removed As String
+Dim cond, valarr, resitem, newarr
 
-Set reslist = CreateObject("Scripting.Dictionary")
+ReDim reslist(valrange.count)
 
 valarr = valrange
 
@@ -85,7 +85,7 @@ nextj:
     
     checkstr = "and(" & checkstr & "TRUE)" 'if missing all the conditions the result is true
 
-    If Evaluate(checkstr) = True Then reslist.Add i, valarr(i, 1)
+    If Evaluate(checkstr) = True Then reslist(i - 1) = valarr(i, 1)
     
 nexti:
 Next i
@@ -93,11 +93,15 @@ Next i
 Set testrangearr = Nothing
 Set conditionarr = Nothing
 
+ReDim Preserve reslist(i)
+
 If delimiter <> "" Then
-    Arrayifs = Trim(Join(reslist.items, delimiter))
+    Arrayifs = Trim(Join(reslist, delimiter))
+
 Else
-    Arrayifs = reslist.items
+    Arrayifs = reslist
 End If
+
 
 End Function
 
