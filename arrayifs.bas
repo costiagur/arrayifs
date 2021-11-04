@@ -4,30 +4,32 @@ Option Explicit
 Function Arrayifs(valrange, testrange1, condition1, Optional testrange2 = "", Optional condition2 = "", Optional testrange3 = "", Optional condition3 = "", Optional testrange4 = "", Optional condition4 = "", Optional delimiter As String = "", Optional uniques As Boolean = False)
 
 Dim i As Integer, j As Integer
-Dim testrangearr As New Collection, conditionarr As New Collection, checkstr As String, condarr As New Collection
+Dim testrangearr(), conditionarr(), checkstr As String, condarr(4)
 Dim reslist(), midval, midcond, removed As String
-Dim cond, valarr, resitem, newarr
+Dim valarr, resitem, newarr
+Dim dictuniq As Object
 
 ReDim reslist(valrange.count)
+ReDim conditionarr(4)
+ReDim testrangearr(4)
 
 valarr = valrange
 
-condarr.Add condition1
-condarr.Add condition2
-condarr.Add condition3
-condarr.Add condition4
+condarr(0) = condition1
+condarr(1) = condition2
+condarr(2) = condition3
+condarr(3) = condition4
 
 i = 0
-
-For Each cond In condarr
-    i = i + 1
-    If cond <> "" Then
+j = 0
+For i = 0 To 3
+    If condarr(i) <> "" Then
         
-        midcond = Replace(cond, "<", "")
+        midcond = Replace(condarr(i), "<", "")
         midcond = Replace(midcond, ">", "")
         midcond = Replace(midcond, "=", "")
             
-        removed = Mid(cond, 1, Len(cond) - Len(midcond)) 'get operator
+        removed = Mid(condarr(i), 1, Len(condarr(i)) - Len(midcond)) 'get operator
             
         If IsDate(midcond) Then midcond = val(format(midcond, "General Number")) 'convert date to number
             
@@ -39,23 +41,26 @@ For Each cond In condarr
             midcond = removed & midcond
         End If
         
-        conditionarr.Add midcond
+        conditionarr(j) = midcond
         
         Select Case i
+            Case 0
+                testrangearr(j) = testrange1.Value
             Case 1
-                testrangearr.Add testrange1.Value
+                testrangearr(j) = testrange2.Value
             Case 2
-                testrangearr.Add testrange2.Value
+                testrangearr(j) = testrange3.Value
             Case 3
-                testrangearr.Add testrange3.Value
-            Case 4
-                testrangearr.Add testrange4.Value
+                testrangearr(j) = testrange4.Value
         End Select
+        
+        j = j + 1
     End If
 
-Next
+Next i
 
-Set condarr = Nothing
+ReDim Preserve conditionarr(j - 1)
+ReDim Preserve testrangearr(j - 1)
 
 i = 1
 
@@ -67,10 +72,9 @@ For i = LBound(valarr) To UBound(valarr)
 
     j = 0
 
-    For Each cond In conditionarr
-        j = j + 1
+    For j = 0 To UBound(conditionarr)
         
-        midval = testrangearr.Item(j)(i, 1)
+        midval = testrangearr(j)(i, 1)
         
         If IsEmpty(midval) Then GoTo nextj
         
@@ -78,10 +82,10 @@ For i = LBound(valarr) To UBound(valarr)
         
         If Not IsNumeric(midval) Then midval = Chr(34) & midval & Chr(34)
         
-        checkstr = checkstr & midval & cond & "," 'create evaluation string
+        checkstr = checkstr & midval & conditionarr(j) & "," 'create evaluation string
 
 nextj:
-    Next cond
+    Next j
     
     checkstr = "and(" & checkstr & "TRUE)" 'if missing all the conditions the result is true
 
@@ -90,18 +94,32 @@ nextj:
 nexti:
 Next i
 
-Set testrangearr = Nothing
-Set conditionarr = Nothing
+ReDim Preserve reslist(i - 2)
 
-ReDim Preserve reslist(i)
-
-If delimiter <> "" Then
-    Arrayifs = Trim(Join(reslist, delimiter))
-
-Else
-    Arrayifs = reslist
+If uniques = True Then
+    Set dictuniq = CreateObject("Scripting.Dictionary")
+    i = 0
+    
+    For i = 0 To UBound(reslist)
+        On Error Resume Next
+        dictuniq.Add Key:=reslist(i), Item:=1
+    Next i
+    
+    If delimiter <> "" Then
+        Arrayifs = Trim(Join(dictuniq.keys, delimiter))
+    Else
+        Arrayifs = dictuniq.keys
+    End If
+    
+    Set dictuniq = Nothing
+    
+ElseIf uniques = False Then
+    If delimiter <> "" Then
+        Arrayifs = Trim(Join(reslist, delimiter))
+    Else
+        Arrayifs = reslist
+    End If
 End If
-
-
+    
 End Function
 
