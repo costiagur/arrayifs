@@ -105,6 +105,8 @@ If uniques = True Then
         dictuniq.Add Key:=reslist(i), Item:=1
     Next i
     
+    If dictuniq.exists("") Then dictuniq.Remove ""
+                        
     If delimiter <> "" Then
         Arrayifs = Trim(Join(dictuniq.keys, delimiter))
     Else
